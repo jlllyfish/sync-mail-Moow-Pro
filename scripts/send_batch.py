@@ -647,8 +647,12 @@ class GitHubActionSender:
                 update_data
             )
             
-            if 'error' in update_result:
+            if update_result is None:
+                self.logger.warning(f"⚠️ Mise à jour Grist pour {dossier_id}: réponse vide")
+            elif isinstance(update_result, dict) and 'error' in update_result:
                 self.logger.warning(f"⚠️ Erreur mise à jour Grist pour {dossier_id}: {update_result['error']}")
+            else:
+                self.logger.debug(f"✅ Mise à jour Grist réussie pour {dossier_id}")
         
         return result
     
