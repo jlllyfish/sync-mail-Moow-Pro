@@ -100,14 +100,14 @@ votre-repository/
 Créez le fichier `.github/workflows/send-messages.yml` :
 
 ```yaml
-name: 🚀 Envoi automatique de messages DS avec gestion des dates
+name: 🚀 Envoi automatique de messages DS
 
 on:
   schedule:
     # Tous les jours à 9h00 UTC (10h00 Paris hiver, 11h00 Paris été)
     - cron: '0 9 * * *'
   workflow_dispatch:
-    # Permet le déclenchement manuel
+    # Permet le déclenchement manuel depuis l'interface GitHub
     inputs:
       dry_run:
         description: '🧪 Mode test (ne pas envoyer les messages)'
@@ -120,6 +120,9 @@ on:
         default: 'false'
         type: boolean
 
+env:
+  PYTHON_VERSION: '3.11'
+
 jobs:
   send-messages:
     runs-on: ubuntu-latest
@@ -131,20 +134,23 @@ jobs:
     - name: 🐍 Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: ${{ env.PYTHON_VERSION }}
         cache: 'pip'
     
     - name: 📦 Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install requests python-dotenv
+        # Optionnel : installer les dépendances depuis requirements.txt si vous en avez
+        # pip install -r requirements.txt
     
     - name: 🔧 Verify configuration files
       run: |
-        echo "🔍 Vérification des fichiers..."
+        echo "🔍 Vérification des fichiers de configuration..."
         
         if [ ! -f "config/public-config.json" ]; then
           echo "❌ Fichier config/public-config.json manquant"
+          echo "💡 Assurez-vous d'avoir exporté votre configuration depuis l'app Flask"
           exit 1
         fi
         
@@ -153,43 +159,58 @@ jobs:
           exit 1
         fi
         
-        echo "✅ Fichiers trouvés"
+        echo "✅ Fichiers de configuration trouvés"
         
-        # Vérifier la présence de filtres de dates
-        if grep -q "date_" config/public-config.json; then
-          echo "📅 Filtres de dates détectés dans la configuration"
-        fi
+        # Afficher la config (sans les secrets)
+        echo "📋 Configuration chargée :"
+        python -c "
+import json
+with open('config/public-config.json', 'r') as f:
+    config = json.load(f)
+    print(f'  • Démarche: {config.get(\"demarche_number\")}')
+    print(f'  • Document Grist: {config.get(\"grist_doc_id\")}')
+    print(f'  • Table: {config.get(\"grist_table\")}')
+    print(f'  • Instructeur: {config.get(\"instructeur_id\")}')
+    print(f'  • Export: {config.get(\"export_date\")}')
+"
     
     - name: 🔐 Verify secrets
       env:
         DS_API_TOKEN: ${{ secrets.DS_API_TOKEN }}
         GRIST_API_TOKEN: ${{ secrets.GRIST_API_TOKEN }}
       run: |
-        echo "🔍 Vérification des secrets..."
+        echo "🔍 Vérification des secrets GitHub..."
         
         if [ -z "$DS_API_TOKEN" ]; then
           echo "❌ Secret DS_API_TOKEN manquant"
+          echo "💡 Ajoutez votre token DS dans GitHub Secrets"
           exit 1
         fi
         
         if [ -z "$GRIST_API_TOKEN" ]; then
           echo "❌ Secret GRIST_API_TOKEN manquant"
+          echo "💡 Ajoutez votre token Grist dans GitHub Secrets"
           exit 1
         fi
         
         echo "✅ Secrets trouvés"
+        echo "🔐 Token DS: ${DS_API_TOKEN:0:10}..."
+        echo "🔐 Token Grist: ${GRIST_API_TOKEN:0:10}..."
     
     - name: 📁 Create logs directory
-      run: mkdir -p logs
+      run: |
+        mkdir -p logs
+        echo "📁 Dossier logs créé"
     
-    - name: 🚀 Send batch messages with date processing
+    - name: 🚀 Send batch messages
       env:
         DS_API_TOKEN: ${{ secrets.DS_API_TOKEN }}
         GRIST_API_TOKEN: ${{ secrets.GRIST_API_TOKEN }}
+        APP_URL: ${{ secrets.APP_URL || 'http://localhost:5000' }}
         DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
         FORCE_SEND: ${{ github.event.inputs.force_send || 'false' }}
       run: |
-        echo "🚀 Démarrage de l'envoi par lot avec gestion des dates..."
+        echo "🚀 Démarrage de l'envoi par lot..."
         
         if [ "$DRY_RUN" = "true" ]; then
           echo "🧪 MODE TEST ACTIVÉ - Aucun message ne sera envoyé"
@@ -198,8 +219,6 @@ jobs:
         if [ "$FORCE_SEND" = "true" ]; then
           echo "🔄 MODE FORCE ACTIVÉ - Renvoi des messages déjà envoyés"
         fi
-        
-        echo "📅 Support des timestamps Unix et formats de dates activé"
         
         python scripts/send_batch.py
     
@@ -213,14 +232,13 @@ jobs:
           *.log
         retention-days: 30
     
-    - name: 📈 Enhanced summary with date processing info
+    - name: 📈 Summary
       if: always()
       run: |
-        echo "## 📊 Résumé de l'exécution avec gestion des dates" >> $GITHUB_STEP_SUMMARY
+        echo "## 📊 Résumé de l'exécution" >> $GITHUB_STEP_SUMMARY
         echo "- **Date:** $(date '+%d/%m/%Y %H:%M:%S')" >> $GITHUB_STEP_SUMMARY
         echo "- **Mode:** ${{ github.event.inputs.dry_run == 'true' && '🧪 Test' || '🚀 Production' }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Gestion des dates:** ✅ Timestamps Unix supportés" >> $GITHUB_STEP_SUMMARY
-        echo "- **Filtres de dates:** ✅ Actifs si configurés" >> $GITHUB_STEP_SUMMARY
+        echo "- **Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
         
         if [ -f "logs/github-action.log" ]; then
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -230,14 +248,46 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
         fi
         
-        # Rechercher des mentions de dates dans les logs
-        if [ -f "logs/github-action.log" ] && grep -q "📅" logs/github-action.log; then
+        # Afficher les résultats s'ils existent
+        if ls logs/results-*.json 1> /dev/null 2>&1; then
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📅 Traitement des dates détecté:" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          grep "📅" logs/github-action.log | tail -5 >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Résultats:" >> $GITHUB_STEP_SUMMARY
+          python -c "
+import json
+import glob
+import os
+
+result_files = glob.glob('logs/results-*.json')
+if result_files:
+    latest_file = max(result_files, key=os.path.getctime)
+    with open(latest_file, 'r') as f:
+        results = json.load(f)
+    
+    print(f'- **Total traité:** {results.get(\"total_records\", 0)}')
+    print(f'- **✅ Succès:** {results.get(\"success_count\", 0)}')
+    print(f'- **❌ Erreurs:** {results.get(\"error_count\", 0)}')
+    print(f'- **⏭️ Déjà envoyés:** {results.get(\"already_sent_count\", 0)}')
+" >> $GITHUB_STEP_SUMMARY
         fi
+
+  # Job optionnel : notification en cas d'échec
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    needs: send-messages
+    if: failure()
+    
+    steps:
+    - name: 📧 Notification d'échec
+      run: |
+        echo "❌ L'envoi automatique a échoué"
+        echo "🔍 Vérifiez les logs dans l'onglet Actions"
+        echo "📊 Les artefacts contiennent les détails de l'erreur"
+        
+        # Ici vous pourriez ajouter une notification Slack, email, etc.
+        # Exemple avec une webhook Slack :
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"❌ Envoi DS automatique échoué - Workflow: ${{ github.run_id }}"}' \
+        #   ${{ secrets.SLACK_WEBHOOK_URL }}
 ```
 
 ### Étape 4 : Créer le script Python
