@@ -134,26 +134,10 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
         fi
         
-        # Afficher les résultats s'ils existent
         if ls logs/results-*.json 1> /dev/null 2>&1; then
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📊 Résultats:" >> $GITHUB_STEP_SUMMARY
-          python -c "
-import json
-import glob
-import os
-
-result_files = glob.glob('logs/results-*.json')
-if result_files:
-    latest_file = max(result_files, key=os.path.getctime)
-    with open(latest_file, 'r') as f:
-        results = json.load(f)
-    
-    print(f'- **Total traité:** {results.get(\"total_records\", 0)}')
-    print(f'- **✅ Succès:** {results.get(\"success_count\", 0)}')
-    print(f'- **❌ Erreurs:** {results.get(\"error_count\", 0)}')
-    print(f'- **⏭️ Déjà envoyés:** {results.get(\"already_sent_count\", 0)}')
-" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Résultats disponibles dans les artefacts" >> $GITHUB_STEP_SUMMARY
+          echo "Téléchargez les artefacts pour voir les détails des résultats." >> $GITHUB_STEP_SUMMARY
         fi
 
   # Job optionnel : notification en cas d'échec
