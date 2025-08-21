@@ -58,18 +58,7 @@ jobs:
         fi
         
         echo "✅ Fichiers de configuration trouvés"
-        
-        echo "📋 Configuration chargée :"
-        python -c "
-import json
-with open('config/public-config.json', 'r') as f:
-    config = json.load(f)
-    print('  • Démarche: ' + str(config.get('demarche_number')))
-    print('  • Document Grist: ' + str(config.get('grist_doc_id')))
-    print('  • Table: ' + str(config.get('grist_table')))
-    print('  • Instructeur: ' + str(config.get('instructeur_id')))
-    print('  • Export: ' + str(config.get('export_date')))
-        "
+        echo "📋 Configuration trouvée dans config/public-config.json"
     
     - name: 🔐 Verify secrets
       env:
