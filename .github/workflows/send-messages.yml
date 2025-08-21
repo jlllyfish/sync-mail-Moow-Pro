@@ -65,11 +65,11 @@ jobs:
 import json
 with open('config/public-config.json', 'r') as f:
     config = json.load(f)
-    print(f'  • Démarche: {config.get(\"demarche_number\")}')
-    print(f'  • Document Grist: {config.get(\"grist_doc_id\")}')
-    print(f'  • Table: {config.get(\"grist_table\")}')
-    print(f'  • Instructeur: {config.get(\"instructeur_id\")}')
-    print(f'  • Export: {config.get(\"export_date\")}')
+    print('  • Démarche: ' + str(config.get('demarche_number')))
+    print('  • Document Grist: ' + str(config.get('grist_doc_id')))
+    print('  • Table: ' + str(config.get('grist_table')))
+    print('  • Instructeur: ' + str(config.get('instructeur_id')))
+    print('  • Export: ' + str(config.get('export_date')))
 "
     
     - name: 🔐 Verify secrets
