@@ -59,7 +59,6 @@ jobs:
         
         echo "✅ Fichiers de configuration trouvés"
         
-        # Afficher la config (sans les secrets)
         echo "📋 Configuration chargée :"
         python -c "
 import json
@@ -70,7 +69,7 @@ with open('config/public-config.json', 'r') as f:
     print('  • Table: ' + str(config.get('grist_table')))
     print('  • Instructeur: ' + str(config.get('instructeur_id')))
     print('  • Export: ' + str(config.get('export_date')))
-"
+        "
     
     - name: 🔐 Verify secrets
       env:
