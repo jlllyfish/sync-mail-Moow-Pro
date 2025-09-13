@@ -1,0 +1,18 @@
+{
+  "demarche_number": 124717,
+  "export_date": "2025-09-13T14:59:38.839200",
+  "filter_logic": "AND",
+  "filters": [
+    {
+      "column": "state",
+      "operator": "equals",
+      "value": "en_construction"
+    }
+  ],
+  "grist_doc_id": "oJV2pNqCnuBye2EXTMrWed",
+  "grist_table": "Demarche_124717_dossiers",
+  "instructeur_id": "SW5zdHJ1Y3RldXItMTQ5MTM=",
+  "message_body": "<p>Bonjour, </p><p>Pour déposer votre <strong>Dossier DGER Mobilité individuelle apprenant UE et hors UE</strong> prérempli, il vous suffira de suivre ces étapes :</p><p>1️⃣ <strong>Cliquez sur ce lien : </strong></p><p>👉 <a href=\"https://moow-pro-flask.up.railway.app/\" rel=\"noopener noreferrer\" target=\"_blank\">https://moow-pro-flask.up.railway.app/</a></p><p>2️⃣ Une fois sur la page  :</p><ul><li>✉️ <strong>Saisissez le nom de l'apprenant ou du personnel</strong> ou recherchez par date de départ</li><li>🏫 <strong>Sélectionnez votre établissement</strong></li><li>🔍 <strong>Cliquez sur “Rechercher”</strong>.</li><li><strong>🚀</strong> <strong>Cliquez sur</strong> <strong> </strong>📄<strong>“Générer le lien pour accéder au dossier prérempli”</strong>.</li></ul><p><br></p><p>Cordialement, </p><p>James Chaigneaud </p><p><em>Draaf Srfd Occitanie</em></p><p><br></p>",
+  "message_subject": "🔗 Déposer votre dossier de mobilité DGER prérempli",
+  "version": "1.0"
+}
