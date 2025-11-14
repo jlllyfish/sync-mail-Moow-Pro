@@ -326,7 +326,7 @@ class DSClient:
     
     def __init__(self, token: str):
         self.token = token
-        self.endpoint = "https://www.demarches-simplifiees.fr/api/v2/graphql"
+        self.endpoint = "https://demarche.numerique.gouv.fr/api/v2/graphql"
     
     def _make_request(self, query: str, variables: Dict[str, Any] = None) -> Dict[str, Any]:
         """Faire une requête GraphQL vers DS"""
@@ -770,3 +770,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
